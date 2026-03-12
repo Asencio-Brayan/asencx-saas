@@ -1,0 +1,170 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  TENANT_OWNER
+  TENANT_USER
+}
+
+enum PlanTier {
+  FREE
+  BASIC
+  PREMIUM
+  VIP
+}
+
+enum BillingCycle {
+  MONTHLY
+  ANNUAL
+}
+
+enum ClientStatus {
+  PENDING
+  ACTIVE
+  VENCIDO
+  CANCELLED
+  SUSPENDED // Maps to PAUSADO
+}
+
+// User represents a login account. 
+// A user belongs to a Tenant (Client).
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(TENANT_OWNER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenantId    String?
+  tenant      Tenant?   @relation(fields: [tenantId], references: [id])
+  
+  auditLogs   AuditLog[]
+}
+
+// Lead is for initial contact only. Simple capture.
+enum LeadStatus {
+  PENDING
+  CONVERTED
+  LOST
+  TRIAL
+}
+
+model Lead {
+  id            String      @id @default(uuid())
+  name          String
+  companyName   String
+  email         String      @unique
+  phoneWhatsapp String?
+  status        LeadStatus  @default(PENDING)
+  notes         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  notifications Notification[]
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  type      String
+  title     String
+  message   String
+  readAt    DateTime?
+  leadId    String?
+  lead      Lead?     @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  createdAt DateTime  @default(now())
+}
+
+// Tenant represents the "Client" or "Business" using the SaaS
+model Tenant {
+  id          String   @id @default(uuid())
+  name        String
+  companyName String
+  email       String   @unique
+  phone       String?
+  
+  // Subscription & Status
+  status      ClientStatus @default(PENDING)
+  plan        PlanTier     @default(FREE)
+  modalidad   BillingCycle @default(MONTHLY)
+  
+  fechaInicio DateTime?
+  fechaFin    DateTime?
+  
+  // Branding (White Label)
+  logoUrl             String?
+  colorsPersonalizados Json?   // Stores custom colors
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users       User[]
+  // Add other relations here as the system grows (e.g. Products, Orders depending on the SaaS type)
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  adminId   String
+  admin     User     @relation(fields: [adminId], references: [id])
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+}
+
+model SystemConfig {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+
+
+model Plan {
+  id           String   @id @default(uuid())
+  tier         PlanTier @unique
+  displayName  String
+  priceMonthly Int
+  priceAnnual  Int
+  currency     String   @default("PEN")
+  features     Json
+  limits       Json
+  isActive     Boolean  @default(true)
+  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now())
+}
+
+enum CheckoutStatus {
+  PENDING
+  PENDING_PAYMENT
+  PAID
+  FAILED
+  CANCELED
+}
+
+model CheckoutRequest {
+  id           String         @id @default(uuid())
+  fullName     String
+  company      String
+  whatsapp     String
+  email        String
+  industry     String
+  notes        String?
+  planName     String
+  billingCycle BillingCycle
+  amountUsd    Float
+  status       CheckoutStatus @default(PENDING)
+  source       String?        @default("WHATSAPP_CHECKOUT")
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
