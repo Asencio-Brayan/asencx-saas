@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Landing } from './pages/Landing';
+<<<<<<< HEAD
 import { Login } from './pages/Login';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminLayout } from './layouts/AdminLayout';
@@ -9,11 +10,17 @@ import { PrivacyPage } from './pages/legal/PrivacyPage';
 import { TermsPage } from './pages/legal/TermsPage';
 import { CookiesPage } from './pages/legal/CookiesPage';
 import { Checkout } from './pages/Checkout';
+=======
+import { PrivacyPage } from './pages/legal/PrivacyPage';
+import { TermsPage } from './pages/legal/TermsPage';
+import { CookiesPage } from './pages/legal/CookiesPage';
+>>>>>>> 952feead (Landing optimizada sin login, enfocada en conversion)
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
+<<<<<<< HEAD
       <Route path="/soluciones/:slug" element={<IndustryDetailsPage />} />
       <Route path="/privacidad" element={<PrivacyPage />} />
       <Route path="/terminos" element={<TermsPage />} />
@@ -36,6 +43,11 @@ function App() {
           </ProtectedRoute>
         }
       />
+=======
+      <Route path="/privacidad" element={<PrivacyPage />} />
+      <Route path="/terminos" element={<TermsPage />} />
+      <Route path="/cookies" element={<CookiesPage />} />
+>>>>>>> 952feead (Landing optimizada sin login, enfocada en conversion)
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
